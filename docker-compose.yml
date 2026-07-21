@@ -1,0 +1,41 @@
+services:
+  # Production build served by nginx
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: blackboxfx-web
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - blackboxfx-net
+
+  # Optional local development with HMR
+  web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: blackboxfx-dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    profiles:
+      - dev
+    networks:
+      - blackboxfx-net
+
+networks:
+  blackboxfx-net:
+    driver: bridge
