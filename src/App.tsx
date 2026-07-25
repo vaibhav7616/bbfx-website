@@ -12,7 +12,6 @@ import Comparison from './components/Comparison';
 import Performance from './components/Performance';
 import Markets from './components/Markets';
 import ChartMockup from './components/ChartMockup';
-import Demo from './components/Demo';
 import Testimonials from './components/Testimonials';
 import Pricing from './components/Pricing';
 import FAQ from './components/FAQ';
@@ -88,9 +87,6 @@ export default function App() {
         </div>
         <div data-reveal>
           <ChartMockup />
-        </div>
-        <div data-reveal>
-          <Demo />
         </div>
         <div data-reveal>
           <Testimonials />
