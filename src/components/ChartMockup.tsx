@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Expand } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, Pause, Play } from 'lucide-react';
 import SectionHeading from './SectionHeading';
 
 type Slide = {
   id: string;
-  src?: string;
+  src: string;
   pair: string;
   tf: string;
   signal: 'BUY' | 'SELL';
@@ -58,173 +58,74 @@ const SLIDES: Slide[] = [
     label: 'Gold · Sell continuation',
   },
   {
-    id: 'nas',
-    pair: 'NAS100',
-    tf: 'M30 · CME',
-    signal: 'BUY',
-    regime: 'Bullish Structure',
-    last: '21,856',
-    conf: '7.6/10',
-    change: '+0.74%',
+    id: 'xau-sell-3',
+    src: '/uploads/blackboxfx-chart-4.png',
+    pair: 'XAUUSD',
+    tf: '5 · OANDA',
+    signal: 'SELL',
+    regime: 'Weak Trend',
+    last: '4,052.845',
+    conf: '6.7/10',
+    change: '+0.08%',
     up: true,
-    label: 'Indices · Risk mapped',
+    label: 'Gold · Scalp sell mode',
   },
 ];
 
-function MockChart({ slide }: { slide: Slide }) {
-  const isBuy = slide.signal === 'BUY';
-  const seed = slide.id.charCodeAt(0) + slide.id.charCodeAt(1);
-  const candles = Array.from({ length: 28 }, (_, i) => {
-    const base = 40 + ((seed * (i + 3)) % 40) + i * 2.2;
-    const body = 8 + ((seed + i * 7) % 18);
-    const up = (i + seed) % 3 !== 0;
-    return {
-      x: 36 + i * 24,
-      open: up ? base : base + body,
-      close: up ? base + body : base,
-      high: base + body + 6 + (i % 5),
-      low: base - 6 - (i % 4),
-      up,
-    };
-  });
-
-  const maxY = 190;
-  const scale = (v: number) => 220 - (v / maxY) * 180;
-
-  const ema1 = candles.map((c, i) => `${c.x + 6},${scale((c.open + c.close) / 2 + 10 + Math.sin(i / 3) * 4)}`).join(' ');
-  const ema2 = candles.map((c, i) => `${c.x + 6},${scale((c.open + c.close) / 2 - 8 + Math.cos(i / 4) * 3)}`).join(' ');
-
-  return (
-    <div className="relative w-full bg-[#0a0b10] aspect-[16/9] min-h-[240px]">
-      <svg viewBox="0 0 720 280" className="w-full h-full" preserveAspectRatio="xMidYMid slice">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <line
-            key={i}
-            x1={20}
-            x2={700}
-            y1={30 + i * 40}
-            y2={30 + i * 40}
-            stroke="rgba(255,255,255,0.05)"
-          />
-        ))}
-        <line x1={20} x2={700} y1={48} y2={48} stroke="#22d3ee" strokeDasharray="5 4" opacity={0.45} />
-        <text x={690} y={44} fill="#22d3ee" fontSize={9} textAnchor="end" fontFamily="monospace">
-          Daily High
-        </text>
-        <line x1={20} x2={700} y1={210} y2={210} stroke="#fb7185" strokeDasharray="5 4" opacity={0.4} />
-        <text x={690} y={222} fill="#fb7185" fontSize={9} textAnchor="end" fontFamily="monospace">
-          Daily Low
-        </text>
-        <line x1={20} x2={700} y1={62} y2={62} stroke="#34d399" opacity={0.35} />
-        <text x={28} y={58} fill="#34d399" fontSize={9} fontFamily="monospace">
-          TP3
-        </text>
-        <line x1={20} x2={700} y1={78} y2={78} stroke="#34d399" opacity={0.45} />
-        <text x={28} y={74} fill="#34d399" fontSize={9} fontFamily="monospace">
-          TP2
-        </text>
-        <line x1={20} x2={700} y1={94} y2={94} stroke="#34d399" opacity={0.55} />
-        <text x={28} y={90} fill="#34d399" fontSize={9} fontFamily="monospace">
-          TP1
-        </text>
-        <line x1={20} x2={700} y1={168} y2={168} stroke="#fb7185" opacity={0.55} />
-        <text x={28} y={180} fill="#fb7185" fontSize={9} fontFamily="monospace">
-          SL
-        </text>
-        <polyline points={ema1} fill="none" stroke="#f5c451" strokeWidth={1.6} opacity={0.9} />
-        <polyline points={ema2} fill="none" stroke="#a78bfa" strokeWidth={1.5} opacity={0.8} />
-        {candles.map((c, i) => {
-          const color = c.up ? '#34d399' : '#fb7185';
-          const top = scale(Math.max(c.open, c.close));
-          const h = Math.max(2, Math.abs(scale(c.open) - scale(c.close)));
-          return (
-            <g key={i}>
-              <line
-                x1={c.x + 6}
-                x2={c.x + 6}
-                y1={scale(c.high)}
-                y2={scale(c.low)}
-                stroke={color}
-                strokeWidth={1.2}
-              />
-              <rect x={c.x} y={top} width={12} height={h} rx={1} fill={color} opacity={0.92} />
-            </g>
-          );
-        })}
-        <g transform={`translate(${isBuy ? 420 : 280}, ${isBuy ? 150 : 70})`}>
-          <rect
-            x={-22}
-            y={isBuy ? -26 : 8}
-            width={48}
-            height={18}
-            rx={3}
-            fill={isBuy ? '#34d399' : '#fb7185'}
-          />
-          <text
-            x={2}
-            y={isBuy ? -13 : 21}
-            fill={isBuy ? '#05050a' : '#fff'}
-            fontSize={10}
-            fontWeight={700}
-            textAnchor="middle"
-            fontFamily="sans-serif"
-          >
-            {slide.signal}
-          </text>
-          <line
-            x1={2}
-            x2={2}
-            y1={isBuy ? -6 : 0}
-            y2={isBuy ? 4 : 8}
-            stroke={isBuy ? '#34d399' : '#fb7185'}
-            strokeWidth={1.5}
-          />
-        </g>
-        <g transform="translate(560, 28)">
-          <rect width={120} height={40} rx={8} fill="rgba(167,139,250,0.12)" stroke="#a78bfa" strokeWidth={1} />
-          <text x={60} y={16} fill="#9494a8" fontSize={8} textAnchor="middle" fontFamily="monospace">
-            AI CONFIDENCE
-          </text>
-          <text x={60} y={32} fill="#f5c451" fontSize={13} fontWeight={700} textAnchor="middle" fontFamily="monospace">
-            {slide.conf}
-          </text>
-        </g>
-      </svg>
-
-      <div className="absolute top-3 left-3 glass rounded-xl px-3 py-2 border border-white/10 hidden sm:block">
-        <div className="text-[9px] font-mono text-gold tracking-wider mb-1">BLACKBOX HUD</div>
-        <div className="space-y-1 text-[10px] font-mono">
-          <div className="flex gap-4 justify-between">
-            <span className="text-muted">Signal</span>
-            <span className={isBuy ? 'text-signal' : 'text-danger'}>{slide.signal}</span>
-          </div>
-          <div className="flex gap-4 justify-between">
-            <span className="text-muted">Pair</span>
-            <span className="text-white">{slide.pair}</span>
-          </div>
-          <div className="flex gap-4 justify-between">
-            <span className="text-muted">Regime</span>
-            <span className="text-violet">{slide.regime.split(' ')[0]}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+const AUTO_MS = 5000;
+const easeSmooth = [0.22, 1, 0.36, 1] as const;
 
 export default function ChartMockup() {
   const [index, setIndex] = useState(0);
+  const [dir, setDir] = useState(1);
   const [paused, setPaused] = useState(false);
+  const [progressKey, setProgressKey] = useState(0);
+  const touchX = useRef<number | null>(null);
   const slide = SLIDES[index];
 
-  const next = useCallback(() => setIndex((i) => (i + 1) % SLIDES.length), []);
-  const prev = useCallback(() => setIndex((i) => (i - 1 + SLIDES.length) % SLIDES.length), []);
+  const goTo = useCallback((next: number, direction = 1) => {
+    setDir(direction);
+    setIndex(((next % SLIDES.length) + SLIDES.length) % SLIDES.length);
+    setProgressKey((k) => k + 1);
+  }, []);
 
+  const next = useCallback(() => goTo(index + 1, 1), [goTo, index]);
+  const prev = useCallback(() => goTo(index - 1, -1), [goTo, index]);
+
+  // Preload all slide images for buttery transitions
+  useEffect(() => {
+    SLIDES.forEach((s) => {
+      const img = new Image();
+      img.src = s.src;
+    });
+  }, []);
+
+  // Smooth auto-play
   useEffect(() => {
     if (paused) return;
-    const t = setInterval(next, 4500);
-    return () => clearInterval(t);
-  }, [next, paused]);
+    const t = window.setTimeout(() => {
+      setDir(1);
+      setIndex((i) => (i + 1) % SLIDES.length);
+      setProgressKey((k) => k + 1);
+    }, AUTO_MS);
+    return () => window.clearTimeout(t);
+  }, [index, paused]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchX.current = e.touches[0].clientX;
+    setPaused(true);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (Math.abs(dx) > 48) {
+      if (dx < 0) next();
+      else prev();
+    }
+    setPaused(false);
+  };
 
   return (
     <section id="chart" className="section-pad relative">
@@ -233,7 +134,7 @@ export default function ChartMockup() {
         <SectionHeading
           eyebrow="On-Chart Intelligence"
           title="TradingView Terminal Preview"
-          subtitle="Swipe through live-style BlackBoxFX setups — BUY/SELL labels, confidence scoring, regime detection, and full risk mapping."
+          subtitle="Auto-sliding live BlackBoxFX setups — BUY/SELL labels, confidence scoring, regime detection, and full risk mapping."
         />
 
         <motion.div
@@ -259,10 +160,18 @@ export default function ChartMockup() {
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPaused((p) => !p)}
+                  className="w-7 h-7 rounded-md border border-white/10 bg-white/[0.04] flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                  aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
+                >
+                  {paused ? <Play className="w-3 h-3 fill-current" /> : <Pause className="w-3 h-3" />}
+                </button>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-signal/10 text-signal border border-signal/25">
                   LIVE
                 </span>
-                <span className="text-[10px] font-mono text-muted">
+                <span className="text-[10px] font-mono text-muted tabular-nums">
                   {index + 1}/{SLIDES.length}
                 </span>
                 <Expand className="w-3.5 h-3.5 text-white/30" />
@@ -272,10 +181,21 @@ export default function ChartMockup() {
             {/* Status strip */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-3 border-b border-white/[0.05] bg-[#0a0b0f]">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="font-display text-sm font-bold text-white">{slide.pair}</span>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={slide.id + '-pair'}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.35, ease: easeSmooth }}
+                    className="font-display text-sm font-bold text-white"
+                  >
+                    {slide.pair}
+                  </motion.span>
+                </AnimatePresence>
                 <span className="text-xs text-muted font-mono">{slide.tf}</span>
                 <span
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors duration-500 ${
                     slide.signal === 'BUY'
                       ? 'bg-signal/12 text-signal border-signal/25'
                       : 'bg-danger/12 text-danger border-danger/25'
@@ -298,37 +218,41 @@ export default function ChartMockup() {
               </div>
             </div>
 
-            <div className="relative bg-black">
-              <AnimatePresence mode="wait">
+            <div
+              className="relative bg-black aspect-[16/9] max-h-[560px] overflow-hidden select-none"
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
+            >
+              <AnimatePresence initial={false} custom={dir} mode="popLayout">
                 <motion.div
                   key={slide.id}
-                  initial={{ opacity: 0, x: 24 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -24 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  custom={dir}
+                  initial={{ opacity: 0, x: dir * 48, scale: 1.015 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: dir * -36, scale: 0.99 }}
+                  transition={{ duration: 0.7, ease: easeSmooth }}
+                  className="absolute inset-0"
                 >
-                  {slide.src ? (
-                    <img
-                      src={slide.src}
-                      alt={`${slide.pair} BlackBoxFX TradingView terminal preview`}
-                      className="w-full h-auto block max-h-[560px] object-cover object-left"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <MockChart slide={slide} />
-                  )}
+                  <img
+                    src={slide.src}
+                    alt={`${slide.pair} BlackBoxFX TradingView terminal preview — ${slide.label}`}
+                    className="w-full h-full object-cover object-left block"
+                    draggable={false}
+                    decoding="async"
+                  />
                 </motion.div>
               </AnimatePresence>
 
               <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/[0.04]" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black/25 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black/25 to-transparent" />
 
               {/* Nav arrows */}
               <button
                 type="button"
                 onClick={prev}
                 aria-label="Previous chart"
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full glass border border-white/15 flex items-center justify-center text-white hover:border-violet/50 hover:bg-white/10 transition-colors"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full glass border border-white/15 flex items-center justify-center text-white hover:border-violet/50 hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -336,38 +260,98 @@ export default function ChartMockup() {
                 type="button"
                 onClick={next}
                 aria-label="Next chart"
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full glass border border-white/15 flex items-center justify-center text-white hover:border-violet/50 hover:bg-white/10 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full glass border border-white/15 flex items-center justify-center text-white hover:border-violet/50 hover:bg-white/10 transition-all hover:scale-105 active:scale-95"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
+
+              {/* Auto-play progress */}
+              <div className="absolute bottom-0 inset-x-0 h-[2px] bg-white/[0.06] z-10">
+                {!paused && (
+                  <motion.div
+                    key={progressKey}
+                    className="h-full origin-left"
+                    style={{
+                      background: 'linear-gradient(90deg, #f5c451, #a78bfa, #22d3ee)',
+                    }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ duration: AUTO_MS / 1000, ease: 'linear' }}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Thumbnails / dots */}
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {/* Thumbnails */}
+          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-2.5">
             {SLIDES.map((s, i) => (
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setIndex(i)}
-                className={`text-left rounded-xl px-3 py-3 border transition-all ${
+                onClick={() => goTo(i, i > index ? 1 : -1)}
+                className={`group relative text-left rounded-xl overflow-hidden border transition-all duration-300 ${
                   i === index
-                    ? 'glass-gold border-violet/40 ring-aurora'
-                    : 'glass border-white/[0.06] hover:border-white/15'
+                    ? 'border-violet/45 ring-aurora scale-[1.01]'
+                    : 'border-white/[0.06] hover:border-white/20 opacity-85 hover:opacity-100'
                 }`}
               >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-display text-xs font-semibold text-white">{s.pair}</span>
-                  <span
-                    className={`text-[10px] font-mono ${
-                      s.signal === 'BUY' ? 'text-signal' : 'text-danger'
-                    }`}
-                  >
-                    {s.signal}
-                  </span>
+                <div className="relative h-16 sm:h-20 overflow-hidden bg-black">
+                  <img
+                    src={s.src}
+                    alt=""
+                    className="w-full h-full object-cover object-left transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    draggable={false}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2">
+                    <span className="font-display text-[11px] font-semibold text-white">{s.pair}</span>
+                    <span
+                      className={`text-[10px] font-mono ${
+                        s.signal === 'BUY' ? 'text-signal' : 'text-danger'
+                      }`}
+                    >
+                      {s.signal}
+                    </span>
+                  </div>
                 </div>
-                <div className="text-[10px] text-muted truncate">{s.label}</div>
+                <div className="px-2.5 py-2 bg-[#0c0e12]/95">
+                  <div className="text-[10px] text-muted truncate">{s.label}</div>
+                  {i === index && (
+                    <div className="mt-1.5 h-[2px] rounded-full bg-white/10 overflow-hidden">
+                      {!paused ? (
+                        <motion.div
+                          key={`thumb-${progressKey}`}
+                          className="h-full bg-gradient-to-r from-gold to-violet origin-left"
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ duration: AUTO_MS / 1000, ease: 'linear' }}
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-violet/40" />
+                      )}
+                    </div>
+                  )}
+                </div>
               </button>
+            ))}
+          </div>
+
+          {/* Dot indicators */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {SLIDES.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => goTo(i, i > index ? 1 : -1)}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i === index
+                    ? 'w-8 bg-gradient-to-r from-gold via-violet to-neon'
+                    : 'w-1.5 bg-white/20 hover:bg-white/40'
+                }`}
+              />
             ))}
           </div>
 
