@@ -35,7 +35,7 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-r from-void via-void/90 to-void/20 lg:to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-t from-void via-transparent to-void/50 pointer-events-none" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 w-full py-14 md:py-20 lg:py-24">
+      <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 w-full py-14 md:py-20 lg:py-24 pointer-events-auto">
         <motion.div
           className="max-w-2xl lg:max-w-3xl"
           variants={staggerContainer}

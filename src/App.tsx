@@ -9,18 +9,21 @@ function ScrollManager() {
   const { pathname, hash, search } = useLocation();
 
   useEffect(() => {
+    // Checkout / success / admin — always start at top of the new page
     if (pathname !== '/') {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       return;
     }
 
+    // Home hash anchors (features, pricing, etc.)
     if (hash) {
       const id = hash.replace('#', '');
-      requestAnimationFrame(() => {
+      // small delay so home sections are mounted
+      const t = window.setTimeout(() => {
         const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      return;
+      }, 60);
+      return () => window.clearTimeout(t);
     }
 
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });

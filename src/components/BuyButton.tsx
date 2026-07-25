@@ -1,5 +1,5 @@
-import { type ReactNode, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { type ReactNode, type CSSProperties, type MouseEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type Plan = 'monthly' | 'yearly';
 
@@ -12,8 +12,8 @@ interface Props {
 }
 
 /**
- * Reliable checkout CTA — real React Router link + plain href fallback path.
- * Avoids motion wrappers that can swallow clicks.
+ * Checkout CTA — always navigates to the checkout page (not in-page scroll).
+ * Uses React Router navigate + hard fallback so it works in every host.
  */
 export default function BuyButton({
   plan = 'monthly',
@@ -22,12 +22,33 @@ export default function BuyButton({
   style,
   onClick,
 }: Props) {
+  const navigate = useNavigate();
   const to = `/checkout?plan=${plan}`;
 
+  const goCheckout = (e: MouseEvent<HTMLAnchorElement>) => {
+    // Always take over the click so hash/scroll handlers can't steal it
+    e.preventDefault();
+    e.stopPropagation();
+    onClick?.();
+
+    try {
+      navigate(to);
+    } catch {
+      // ignore
+    }
+
+    // Hard navigation fallback (covers broken SPA hosts / stuck routers)
+    window.setTimeout(() => {
+      if (!window.location.pathname.startsWith('/checkout')) {
+        window.location.assign(to);
+      }
+    }, 80);
+  };
+
   return (
-    <Link
-      to={to}
-      onClick={onClick}
+    <a
+      href={to}
+      onClick={goCheckout}
       className={className}
       style={{
         display: 'inline-flex',
@@ -36,12 +57,14 @@ export default function BuyButton({
         pointerEvents: 'auto',
         cursor: 'pointer',
         position: 'relative',
-        zIndex: 5,
+        zIndex: 30,
+        textDecoration: 'none',
         ...style,
       }}
       data-buy-cta="true"
+      role="link"
     >
       {children}
-    </Link>
+    </a>
   );
 }
