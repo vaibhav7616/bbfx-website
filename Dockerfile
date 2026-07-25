@@ -1,4 +1,4 @@
-# ── Stage 1: Build ──────────────────────────────────────────────
+# ── Stage 1: Build frontend ─────────────────────────────────────
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -9,22 +9,24 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# ── Stage 2: Production (nginx) ─────────────────────────────────
-FROM nginx:1.27-alpine AS production
+# ── Stage 2: Node API + static SPA ──────────────────────────────
+FROM node:22-alpine AS production
 
-# Security: remove default config & add hardened SPA config
-RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/default.conf
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=8787
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Non-root friendly permissions
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+COPY server ./server
+COPY --from=builder /app/dist ./dist
+RUN mkdir -p /app/data && chown -R node:node /app
 
-EXPOSE 80
+USER node
+EXPOSE 8787
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -qO- http://127.0.0.1/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=8s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8787/api/health || exit 1
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server/index.js"]

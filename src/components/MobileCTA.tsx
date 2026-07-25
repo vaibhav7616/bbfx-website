@@ -42,7 +42,7 @@ export default function MobileCTA() {
                 <span className="ml-1">/yr</span>
               </div>
             </div>
-            <a href="#pricing" className="btn-gold shrink-0 px-4 py-2.5 rounded-xl text-sm">
+            <a href="/checkout?plan=monthly" className="btn-gold shrink-0 px-4 py-2.5 rounded-xl text-sm">
               Get Access
             </a>
           </div>

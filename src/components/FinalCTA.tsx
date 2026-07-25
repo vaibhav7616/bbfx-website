@@ -36,7 +36,7 @@ export default function FinalCTA() {
 
           <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <MagneticButton
-              href="#pricing"
+              href="/checkout?plan=monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               Buy Now — ₹99/mo

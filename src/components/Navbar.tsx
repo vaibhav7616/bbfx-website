@@ -68,7 +68,7 @@ export default function Navbar() {
           <a href="#demo" className="btn-ghost px-4 py-2 rounded-lg text-[13px]">
             Watch Demo
           </a>
-          <a href="#pricing" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
+          <a href="/checkout?plan=monthly" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
             Buy Now — ₹99/mo
           </a>
         </div>
@@ -112,7 +112,7 @@ export default function Navbar() {
                   Watch Demo
                 </a>
                 <a
-                  href="#pricing"
+                  href="/checkout?plan=monthly"
                   onClick={() => setOpen(false)}
                   className="btn-gold text-center px-5 py-3.5 rounded-xl text-sm"
                 >

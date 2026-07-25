@@ -1,5 +1,5 @@
 services:
-  # Production build served by nginx
+  # Full stack: Express API + built SPA (checkout + Razorpay)
   web:
     build:
       context: .
@@ -7,10 +7,17 @@ services:
       target: production
     container_name: blackboxfx-web
     ports:
-      - "8080:80"
+      - "8787:8787"
+    env_file:
+      - .env
+    environment:
+      - PORT=8787
+      - NODE_ENV=production
+    volumes:
+      - bbfx-data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/api/health"]
       interval: 30s
       timeout: 3s
       retries: 3
@@ -18,7 +25,7 @@ services:
     networks:
       - blackboxfx-net
 
-  # Optional local development with HMR
+  # Optional local frontend HMR only
   web-dev:
     build:
       context: .
@@ -35,6 +42,9 @@ services:
       - dev
     networks:
       - blackboxfx-net
+
+volumes:
+  bbfx-data:
 
 networks:
   blackboxfx-net:

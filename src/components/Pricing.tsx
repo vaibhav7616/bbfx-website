@@ -98,7 +98,7 @@ export default function Pricing() {
                 </ul>
 
                 <MagneticButton
-                  href="#final-cta"
+                  href={`/checkout?plan=${plan.id}`}
                   className={`${
                     plan.featured ? 'btn-gold' : 'btn-ghost'
                   } w-full py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center`}
@@ -108,12 +108,12 @@ export default function Pricing() {
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
                   <span className="inline-flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-gold" /> Secure checkout
+                    <Shield className="w-3 h-3 text-gold" /> Razorpay secure
                   </span>
                   <span>·</span>
-                  <span>INR pricing</span>
+                  <span>UPI / Card / Netbanking</span>
                   <span>·</span>
-                  <span>Instant access</span>
+                  <span>TV invite-only</span>
                 </div>
               </div>
             </motion.div>

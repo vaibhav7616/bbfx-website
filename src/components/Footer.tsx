@@ -8,6 +8,7 @@ const COLS = [
       { href: '#how-it-works', label: 'How it works' },
       { href: '#chart', label: 'Terminal preview' },
       { href: '#pricing', label: 'Pricing' },
+      { href: '/checkout?plan=monthly', label: 'Checkout' },
     ],
   },
   {

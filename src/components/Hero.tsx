@@ -76,7 +76,7 @@ export default function Hero() {
 
           <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row gap-3">
             <MagneticButton
-              href="#pricing"
+              href="/checkout?plan=monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center"
             >
               Get Access — ₹99/mo

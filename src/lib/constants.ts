@@ -145,6 +145,14 @@ export const FAQS = [
     q: 'What are the pricing plans?',
     a: 'Monthly access is ₹99/month. Yearly access is ₹999/year — best value if you trade consistently. Both plans include the full BlackBoxFX v3.0 Professional indicator.',
   },
+  {
+    q: 'How do I receive the indicator after payment?',
+    a: 'BlackBoxFX is delivered as a TradingView invite-only script. At checkout you enter your TradingView username. After payment we save your order and add that username to script access. Then open TradingView → Indicators → Invite-only → BlackBoxFX.',
+  },
+  {
+    q: 'Which payment methods are supported?',
+    a: 'Checkout uses Razorpay for India: UPI, cards, and netbanking. After successful payment you land on a confirmation page with order details and next steps.',
+  },
 ];
 
 export const PRICING_PLANS = [
