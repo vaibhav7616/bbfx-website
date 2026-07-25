@@ -1,5 +1,6 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode, type MouseEvent } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { spring } from '../lib/motion';
 
 interface Props {
@@ -10,6 +11,11 @@ interface Props {
   target?: string;
   rel?: string;
   'aria-label'?: string;
+  onClick?: (e: MouseEvent) => void;
+}
+
+function isInternal(href: string) {
+  return href.startsWith('/') && !href.startsWith('//');
 }
 
 export default function MagneticButton({
@@ -19,17 +25,18 @@ export default function MagneticButton({
   href,
   target,
   rel,
+  onClick,
   ...rest
 }: Props) {
-  const ref = useRef<HTMLAnchorElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 280, damping: 18, mass: 0.4 });
   const sy = useSpring(y, { stiffness: 280, damping: 18, mass: 0.4 });
   const scale = useSpring(1, spring.snappy);
+  const box = useRef<HTMLElement | null>(null);
 
   const handleMove = (e: React.MouseEvent) => {
-    const el = ref.current;
+    const el = box.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2);
@@ -44,18 +51,41 @@ export default function MagneticButton({
     scale.set(1);
   };
 
+  const handlers = {
+    onMouseMove: handleMove,
+    onMouseEnter: () => scale.set(1.04),
+    onMouseLeave: handleLeave,
+    onClick,
+    className,
+    ...rest,
+  };
+
+  if (isInternal(href)) {
+    return (
+      <motion.div style={{ x: sx, y: sy, scale }} className="contents">
+        <Link
+          to={href}
+          ref={(node) => {
+            box.current = node;
+          }}
+          {...handlers}
+        >
+          {children}
+        </Link>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.a
-      ref={ref}
       href={href}
       target={target}
       rel={rel}
       style={{ x: sx, y: sy, scale }}
-      onMouseMove={handleMove}
-      onMouseEnter={() => scale.set(1.04)}
-      onMouseLeave={handleLeave}
-      className={className}
-      {...rest}
+      ref={(node) => {
+        box.current = node;
+      }}
+      {...handlers}
     >
       {children}
     </motion.a>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Hexagon } from 'lucide-react';
 
@@ -68,9 +69,9 @@ export default function Navbar() {
           <a href="#demo" className="btn-ghost px-4 py-2 rounded-lg text-[13px]">
             Watch Demo
           </a>
-          <a href="/checkout?plan=monthly" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
+          <Link to="/checkout?plan=monthly" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
             Buy Now — ₹99/mo
-          </a>
+          </Link>
         </div>
 
         <button
@@ -111,13 +112,13 @@ export default function Navbar() {
                 >
                   Watch Demo
                 </a>
-                <a
-                  href="/checkout?plan=monthly"
+                <Link
+                  to="/checkout?plan=monthly"
                   onClick={() => setOpen(false)}
                   className="btn-gold text-center px-5 py-3.5 rounded-xl text-sm"
                 >
                   Buy Now — ₹99/mo
-                </a>
+                </Link>
               </div>
             </div>
           </motion.div>

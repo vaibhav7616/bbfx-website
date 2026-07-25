@@ -108,10 +108,10 @@ export default function Pricing() {
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
                   <span className="inline-flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-gold" /> Razorpay secure
+                    <Shield className="w-3 h-3 text-gold" /> Demo checkout ready
                   </span>
                   <span>·</span>
-                  <span>UPI / Card / Netbanking</span>
+                  <span>No charge yet</span>
                   <span>·</span>
                   <span>TV invite-only</span>
                 </div>

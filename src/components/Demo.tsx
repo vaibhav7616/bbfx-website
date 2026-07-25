@@ -199,7 +199,7 @@ export default function Demo() {
               <Play className="w-4 h-4 fill-current" />
               Watch 4-Min Demo
             </button>
-            <a href="#pricing" className="btn-ghost px-6 py-3 rounded-xl text-sm">
+            <a href="/checkout?plan=monthly" className="btn-ghost px-6 py-3 rounded-xl text-sm">
               Get Access — ₹99/mo
             </a>
           </div>

@@ -151,7 +151,11 @@ export const FAQS = [
   },
   {
     q: 'Which payment methods are supported?',
-    a: 'Checkout uses Razorpay for India: UPI, cards, and netbanking. After successful payment you land on a confirmation page with order details and next steps.',
+    a: 'Live mode will use Razorpay (UPI, cards, netbanking). Right now the site runs in demo checkout — you can complete the full order flow without a real charge. Payment keys will be connected next.',
+  },
+  {
+    q: 'Is checkout working now?',
+    a: 'Yes in demo mode. Choose Monthly (₹99) or Yearly (₹999), enter name, email, and TradingView username, then confirm. You will see the success page with your order details. No real money is charged until Razorpay is enabled.',
   },
 ];
 

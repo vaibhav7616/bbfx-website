@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Check,
+  FlaskConical,
   Hexagon,
   Loader2,
   Lock,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import {
   CHECKOUT_PLANS,
+  FORCE_DEMO,
   createCheckoutOrder,
   fetchCheckoutConfig,
   loadRazorpay,
@@ -35,7 +37,7 @@ export default function CheckoutPage() {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoMode, setDemoMode] = useState(true);
+  const [demoMode, setDemoMode] = useState(FORCE_DEMO);
   const [accessSla, setAccessSla] = useState('2 hours');
 
   const plan = CHECKOUT_PLANS[planId];
@@ -43,7 +45,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetchCheckoutConfig()
       .then((cfg) => {
-        setDemoMode(Boolean(cfg.demoMode));
+        setDemoMode(Boolean(cfg.demoMode) || FORCE_DEMO);
         if (cfg.accessSla) setAccessSla(cfg.accessSla);
       })
       .catch(() => setDemoMode(true));
@@ -52,12 +54,12 @@ export default function CheckoutPage() {
   const features = useMemo(
     () => [
       'Full BlackBoxFX v3.0 invite-only access',
-      'TradingView username linked after payment',
+      'TradingView username linked after checkout',
       'Free updates during active plan',
       'Installation guide + support',
-      'UPI / Card / Netbanking via Razorpay',
+      demoMode ? 'Demo checkout (no real charge)' : 'UPI / Card / Netbanking via Razorpay',
     ],
-    []
+    [demoMode]
   );
 
   const onSubmit = async (e: FormEvent) => {
@@ -68,24 +70,29 @@ export default function CheckoutPage() {
       return;
     }
 
+    const form = {
+      planId,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      tradingViewUsername: tvUser.trim(),
+    };
+
     setLoading(true);
     try {
-      const created = await createCheckoutOrder({
-        planId,
-        fullName,
-        email,
-        phone,
-        tradingViewUsername: tvUser,
-      });
+      const created = await createCheckoutOrder(form);
 
-      // Demo mode (no Razorpay keys) — complete flow for testing
-      if (created.demoMode || !created.razorpayKeyId || !created.razorpayOrderId) {
+      // Demo mode — complete flow locally (no Razorpay keys needed)
+      if (created.demoMode || demoMode || FORCE_DEMO || !created.razorpayKeyId || !created.razorpayOrderId) {
+        // Small delay so UX feels real
+        await new Promise((r) => setTimeout(r, 700));
         const verified = await verifyPayment({
           orderId: created.orderId,
           demo: true,
+          form,
         });
         saveLocalOrder(verified.order);
-        navigate(`/success?order=${created.orderId}`);
+        navigate(`/success?order=${encodeURIComponent(created.orderId)}&demo=1`);
         return;
       }
 
@@ -125,7 +132,7 @@ export default function CheckoutPage() {
               razorpay_signature: response.razorpay_signature,
             });
             saveLocalOrder(verified.order);
-            navigate(`/success?order=${created.orderId}`);
+            navigate(`/success?order=${encodeURIComponent(created.orderId)}`);
           } catch (err) {
             setError(err instanceof Error ? err.message : 'Payment verification failed');
             setLoading(false);
@@ -159,26 +166,45 @@ export default function CheckoutPage() {
               <div className="font-display text-sm font-bold tracking-wider">
                 BLACKBOX<span className="text-gold">FX</span>
               </div>
-              <div className="text-[10px] text-muted tracking-widest uppercase">Secure checkout</div>
+              <div className="text-[10px] text-muted tracking-widest uppercase">
+                {demoMode ? 'Demo checkout' : 'Secure checkout'}
+              </div>
             </div>
           </Link>
-          <Link to="/" className="text-sm text-muted hover:text-white inline-flex items-center gap-1.5">
+          <Link to="/#pricing" className="text-sm text-muted hover:text-white inline-flex items-center gap-1.5">
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
         </div>
       </header>
 
       <main className="relative mx-auto max-w-6xl px-4 sm:px-6 py-10 md:py-14">
+        {demoMode && (
+          <div className="mb-6 rounded-xl border border-gold/25 bg-gold/10 px-4 py-3 flex items-start gap-3">
+            <FlaskConical className="w-5 h-5 text-gold shrink-0 mt-0.5" />
+            <div>
+              <div className="text-sm font-semibold text-gold-bright">Demo mode is ON</div>
+              <p className="text-xs text-muted mt-0.5 leading-relaxed">
+                No real payment is charged. Submit the form to test the full order → success flow.
+                Later we will connect Razorpay for live UPI/card payments.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-gold mb-3">
             <Lock className="w-3 h-3 text-gold" />
             <span className="text-[11px] font-medium tracking-wider uppercase text-gold-bright">
-              Step 1 · Details & payment
+              {demoMode ? 'Demo · Details & confirm' : 'Step 1 · Details & payment'}
             </span>
           </div>
-          <h1 className="font-display text-3xl md:text-4xl font-bold">Complete your access</h1>
+          <h1 className="font-display text-3xl md:text-4xl font-bold">
+            {demoMode ? 'Try the checkout flow' : 'Complete your access'}
+          </h1>
           <p className="mt-2 text-muted max-w-xl">
-            Pay securely, then we add your TradingView username to the invite-only BlackBoxFX script.
+            {demoMode
+              ? 'Fill your details and confirm. You’ll land on the success page with order details — same path as live payments.'
+              : 'Pay securely, then we add your TradingView username to the invite-only BlackBoxFX script.'}
           </p>
         </div>
 
@@ -291,7 +317,8 @@ export default function CheckoutPage() {
                 className="mt-1 accent-[#a78bfa]"
               />
               <span>
-                I understand TradingView access is invite-only, trading involves risk, and access is delivered after successful payment.
+                I understand TradingView access is invite-only, trading involves risk, and
+                {demoMode ? ' this is a demo checkout with no real charge.' : ' access is delivered after successful payment.'}
               </span>
             </label>
 
@@ -308,22 +335,35 @@ export default function CheckoutPage() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Processing…
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {demoMode ? 'Confirming demo order…' : 'Processing…'}
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  Pay ₹{plan.amountInr} securely
+                  {demoMode ? `Confirm demo order · ₹${plan.amountInr}` : `Pay ₹${plan.amountInr} securely`}
                 </>
               )}
             </button>
 
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted">
-              <span>UPI · Cards · Netbanking</span>
-              <span>·</span>
-              <span>Razorpay secure</span>
-              <span>·</span>
-              <span>{demoMode ? 'Demo mode (add keys for live pay)' : 'Live payments on'}</span>
+              {demoMode ? (
+                <>
+                  <span>No real charge</span>
+                  <span>·</span>
+                  <span>Full success-page flow</span>
+                  <span>·</span>
+                  <span>Razorpay later</span>
+                </>
+              ) : (
+                <>
+                  <span>UPI · Cards · Netbanking</span>
+                  <span>·</span>
+                  <span>Razorpay secure</span>
+                  <span>·</span>
+                  <span>Live payments on</span>
+                </>
+              )}
             </div>
           </motion.form>
 
@@ -333,7 +373,7 @@ export default function CheckoutPage() {
               <div className="font-display text-xl font-bold text-white">BlackBoxFX v3.0</div>
               <div className="text-sm text-muted mt-1">{plan.name} plan</div>
               <div className="mt-5 flex items-end justify-between">
-                <span className="text-muted text-sm">Total due today</span>
+                <span className="text-muted text-sm">{demoMode ? 'Demo total' : 'Total due today'}</span>
                 <span className="font-display text-4xl font-extrabold gold-gradient">₹{plan.amountInr}</span>
               </div>
               <ul className="mt-6 space-y-2.5">
@@ -347,10 +387,10 @@ export default function CheckoutPage() {
             </div>
 
             <div className="glass rounded-2xl p-5 border border-white/[0.06] text-sm text-muted leading-relaxed">
-              <div className="font-semibold text-white mb-2">After payment</div>
+              <div className="font-semibold text-white mb-2">After checkout</div>
               <ol className="space-y-2 list-decimal list-inside">
                 <li>Order saved with your TV username</li>
-                <li>Confirmation on success page + email/WhatsApp</li>
+                <li>Confirmation on success page</li>
                 <li>Invite-only access added (usually within {accessSla})</li>
                 <li>Open TradingView → Indicators → Invite-only → BlackBoxFX</li>
               </ol>
