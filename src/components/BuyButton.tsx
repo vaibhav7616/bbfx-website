@@ -1,4 +1,5 @@
 import { type ReactNode, type CSSProperties, type MouseEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type Plan = 'monthly' | 'yearly';
 
@@ -10,14 +11,14 @@ interface Props {
   onClick?: () => void;
 }
 
-/** Build a stable checkout URL that works with HashRouter on static hosts. */
+/** Public helper for building checkout URLs (hash router). */
 export function checkoutUrl(plan: Plan = 'monthly') {
-  return `#/checkout?plan=${plan}`;
+  return `/checkout?plan=${plan}`;
 }
 
 /**
- * Buy CTA — always opens the checkout page.
- * Uses hard hash navigation so it never gets stuck on section anchors like #final-cta.
+ * Buy CTA — always opens the real checkout page.
+ * Never scrolls between #pricing and #final-cta.
  */
 export default function BuyButton({
   plan = 'monthly',
@@ -26,34 +27,29 @@ export default function BuyButton({
   style,
   onClick,
 }: Props) {
-  const href = checkoutUrl(plan);
+  const navigate = useNavigate();
 
-  const goCheckout = (e?: MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
+  const goCheckout = (e: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     onClick?.();
 
-    // Always hard-navigate via hash (HashRouter). Reliable in iframes & static hosts.
-    const target = `#/checkout?plan=${plan}`;
-    if (window.location.hash !== target) {
-      window.location.hash = target;
-    } else {
-      // Force remount if already on checkout with same hash
-      window.location.hash = '#/';
-      window.setTimeout(() => {
-        window.location.hash = target;
-      }, 0);
-    }
+    // React Router navigation (HashRouter → #/checkout?plan=...)
+    navigate(`/checkout?plan=${plan}`);
 
-    // Ensure we land at top of checkout
+    // Hard fallback for stubborn hosts / iframes
     window.setTimeout(() => {
+      const desired = `#/checkout?plan=${plan}`;
+      if (!window.location.hash.startsWith('#/checkout')) {
+        window.location.hash = desired;
+      }
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    }, 30);
+    }, 0);
   };
 
   return (
-    <a
-      href={href}
+    <button
+      type="button"
       onClick={goCheckout}
       className={className}
       style={{
@@ -64,13 +60,13 @@ export default function BuyButton({
         cursor: 'pointer',
         position: 'relative',
         zIndex: 50,
-        textDecoration: 'none',
+        border: 'none',
         ...style,
       }}
       data-buy-cta="true"
-      role="button"
+      aria-label={plan === 'yearly' ? 'Buy yearly plan' : 'Buy monthly plan'}
     >
       {children}
-    </a>
+    </button>
   );
 }

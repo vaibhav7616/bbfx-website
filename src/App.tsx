@@ -85,7 +85,9 @@ function SectionLinkFix() {
       if (!t) return;
       const a = t.closest('a') as HTMLAnchorElement | null;
       if (!a) return;
+      // Never intercept buy / checkout CTAs
       if (a.dataset.buyCta === 'true') return;
+      if (a.closest('[data-buy-cta="true"]')) return;
 
       const href = a.getAttribute('href') || '';
       // Section anchors: #pricing, #final-cta, etc.

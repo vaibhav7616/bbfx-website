@@ -39,12 +39,21 @@ export default function FinalCTA() {
               plan="monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
             >
-              Buy Now — ₹99/mo
+              Checkout ₹99/mo
               <ArrowRight className="w-4 h-4" />
             </BuyButton>
+            <BuyButton
+              plan="yearly"
+              className="btn-ghost px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+            >
+              Checkout ₹999/yr
+            </BuyButton>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="mt-4">
             <a
               href="mailto:support@blackboxfx.io"
-              className="btn-ghost px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2 text-sm text-muted hover:text-neon transition-colors"
             >
               <Mail className="w-4 h-4" />
               Contact Support
@@ -54,12 +63,12 @@ export default function FinalCTA() {
           <motion.div variants={fadeUp} className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-muted">
             <span className="inline-flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-signal" />
-              Monthly & yearly plans
+              Opens secure checkout form
             </span>
             <span className="text-white/15">·</span>
-            <span>Free updates</span>
+            <span>No scroll loop</span>
             <span className="text-white/15">·</span>
-            <span>Instant TradingView invite</span>
+            <span>Instant TradingView invite flow</span>
           </motion.div>
         </motion.div>
       </div>
