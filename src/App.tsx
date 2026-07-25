@@ -8,7 +8,6 @@ import TrustBar from './components/TrustBar';
 import Features from './components/Features';
 import HowItWorks from './components/HowItWorks';
 import LiveSignals from './components/LiveSignals';
-import Comparison from './components/Comparison';
 import Performance from './components/Performance';
 import Markets from './components/Markets';
 import ChartMockup from './components/ChartMockup';
@@ -76,9 +75,6 @@ export default function App() {
         </div>
         <div id="signals" data-reveal>
           <LiveSignals />
-        </div>
-        <div data-reveal>
-          <Comparison />
         </div>
         <div data-reveal>
           <Performance />
