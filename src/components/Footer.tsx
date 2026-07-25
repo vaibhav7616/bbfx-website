@@ -13,7 +13,7 @@ const COLS = [
   {
     title: 'Resources',
     links: [
-      { href: '#chart', label: 'Live charts' },
+      { href: '#demo', label: 'Watch demo' },
       { href: '#faq', label: 'FAQ' },
       { href: '#signals', label: 'Signal feed' },
       { href: '#final-cta', label: 'Get access' },

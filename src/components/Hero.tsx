@@ -82,12 +82,12 @@ export default function Hero() {
               Get Access — ₹99/mo
             </MagneticButton>
             <MagneticButton
-              href="#chart"
+              href="#demo"
               strength={0.25}
               className="btn-ghost px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4 fill-current" />
-              View Live Charts
+              Watch 4-min Demo
             </MagneticButton>
           </motion.div>
 

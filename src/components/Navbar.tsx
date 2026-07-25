@@ -65,8 +65,8 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex items-center gap-2.5">
-          <a href="#chart" className="btn-ghost px-4 py-2 rounded-lg text-[13px]">
-            Live Charts
+          <a href="#demo" className="btn-ghost px-4 py-2 rounded-lg text-[13px]">
+            Watch Demo
           </a>
           <a href="#pricing" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
             Buy Now — ₹99/mo
@@ -105,11 +105,11 @@ export default function Navbar() {
               ))}
               <div className="mt-3 grid gap-2">
                 <a
-                  href="#chart"
+                  href="#demo"
                   onClick={() => setOpen(false)}
                   className="btn-ghost text-center px-5 py-3.5 rounded-xl text-sm"
                 >
-                  Live Charts
+                  Watch Demo
                 </a>
                 <a
                   href="#pricing"
