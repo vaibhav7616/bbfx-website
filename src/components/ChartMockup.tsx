@@ -72,7 +72,7 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const AUTO_MS = 1000; // auto-advance every 1 second
+const AUTO_MS = 3000; // auto-advance every 3 seconds
 const easeSmooth = [0.22, 1, 0.36, 1] as const;
 
 export default function ChartMockup() {
