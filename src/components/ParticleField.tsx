@@ -84,5 +84,5 @@ export default function ParticleField() {
     };
   }, []);
 
-  return <canvas ref={ref} className="particle-canvas" aria-hidden />;
+  return <canvas ref={ref} className="particle-canvas pointer-events-none" aria-hidden />;
 }

@@ -274,8 +274,12 @@ function Scene() {
 
 export default function HeroTerminal() {
   return (
-    <div className="absolute inset-0 w-full h-full">
-      <Canvas dpr={[1, 1.75]} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}>
+    <div className="absolute inset-0 w-full h-full pointer-events-none" aria-hidden>
+      <Canvas
+        dpr={[1, 1.5]}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
+        style={{ pointerEvents: 'none' }}
+      >
         <PerspectiveCamera makeDefault position={[0.2, 0.15, 6.8]} fov={40} />
         <Scene />
       </Canvas>

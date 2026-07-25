@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import BuyButton from './BuyButton';
 
 export default function MobileCTA() {
   const [show, setShow] = useState(false);
@@ -43,9 +43,9 @@ export default function MobileCTA() {
                 <span className="ml-1">/yr</span>
               </div>
             </div>
-            <Link to="/checkout?plan=monthly" className="btn-gold shrink-0 px-4 py-2.5 rounded-xl text-sm">
+            <BuyButton plan="monthly" className="btn-gold shrink-0 px-4 py-2.5 rounded-xl text-sm inline-flex items-center justify-center">
               Get Access
-            </Link>
+            </BuyButton>
           </div>
         </motion.div>
       )}

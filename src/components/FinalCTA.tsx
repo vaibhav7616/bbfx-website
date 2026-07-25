@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import AuroraBg from './AuroraBg';
-import { Link } from 'react-router-dom';
+import BuyButton from './BuyButton';
 import { fadeUp, staggerContainer } from '../lib/motion';
 
 export default function FinalCTA() {
@@ -35,13 +35,13 @@ export default function FinalCTA() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <Link
-              to="/checkout?plan=monthly"
+            <BuyButton
+              plan="monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               Buy Now — ₹99/mo
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </BuyButton>
             <a
               href="mailto:support@blackboxfx.io"
               className="btn-ghost px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"

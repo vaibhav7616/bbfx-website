@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import SectionHeading from './SectionHeading';
+import BuyButton from './BuyButton';
 
 const CHAPTERS = [
   { t: 'Dashboard overview', d: '0:00' },
@@ -199,9 +200,9 @@ export default function Demo() {
               <Play className="w-4 h-4 fill-current" />
               Watch 4-Min Demo
             </button>
-            <a href="/checkout?plan=monthly" className="btn-ghost px-6 py-3 rounded-xl text-sm">
+            <BuyButton plan="monthly" className="btn-ghost px-6 py-3 rounded-xl text-sm inline-flex items-center justify-center">
               Get Access — ₹99/mo
-            </a>
+            </BuyButton>
           </div>
         </motion.div>
       </div>

@@ -5,7 +5,7 @@ import { METRICS } from '../lib/constants';
 import { fadeUp, spring, staggerContainer, staggerFast } from '../lib/motion';
 import ParticleField from './ParticleField';
 import AuroraBg from './AuroraBg';
-import { Link } from 'react-router-dom';
+import BuyButton from './BuyButton';
 
 const HeroTerminal = lazy(() => import('./HeroTerminal'));
 
@@ -74,13 +74,13 @@ export default function Hero() {
             confidence scoring, regime detection, and automatic risk levels on every setup.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row gap-3">
-            <Link
-              to="/checkout?plan=monthly"
+          <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row gap-3 relative z-20">
+            <BuyButton
+              plan="monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center"
             >
               Get Access — ₹99/mo
-            </Link>
+            </BuyButton>
             <a
               href="#demo"
               className="btn-ghost px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center gap-2"

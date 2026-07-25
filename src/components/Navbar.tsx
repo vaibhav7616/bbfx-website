@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Hexagon } from 'lucide-react';
+import BuyButton from './BuyButton';
 
 const LINKS = [
   { href: '#features', label: 'Features' },
@@ -65,13 +66,13 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex items-center gap-2.5">
+        <div className="hidden lg:flex items-center gap-2.5 relative z-20">
           <a href="#demo" className="btn-ghost px-4 py-2 rounded-lg text-[13px]">
             Watch Demo
           </a>
-          <Link to="/checkout?plan=monthly" className="btn-gold px-5 py-2 rounded-lg text-[13px]">
+          <BuyButton plan="monthly" className="btn-gold px-5 py-2 rounded-lg text-[13px] inline-flex items-center">
             Buy Now — ₹99/mo
-          </Link>
+          </BuyButton>
         </div>
 
         <button
@@ -112,13 +113,13 @@ export default function Navbar() {
                 >
                   Watch Demo
                 </a>
-                <Link
-                  to="/checkout?plan=monthly"
+                <BuyButton
+                  plan="monthly"
                   onClick={() => setOpen(false)}
-                  className="btn-gold text-center px-5 py-3.5 rounded-xl text-sm"
+                  className="btn-gold text-center px-5 py-3.5 rounded-xl text-sm inline-flex items-center justify-center"
                 >
                   Buy Now — ₹99/mo
-                </Link>
+                </BuyButton>
               </div>
             </div>
           </motion.div>
