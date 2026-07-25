@@ -8,8 +8,8 @@ const COLS = [
       { href: '#how-it-works', label: 'How it works' },
       { href: '#chart', label: 'Terminal preview' },
       { href: '#pricing', label: 'Pricing' },
-      { href: '/checkout?plan=monthly', label: 'Buy Monthly ₹99' },
-      { href: '/checkout?plan=yearly', label: 'Buy Yearly ₹999' },
+      { href: '#/checkout?plan=monthly', label: 'Buy Monthly ₹99' },
+      { href: '#/checkout?plan=yearly', label: 'Buy Yearly ₹999' },
     ],
   },
   {
@@ -26,7 +26,7 @@ const COLS = [
     links: [
       { href: 'mailto:support@blackboxfx.io', label: 'Email support' },
       { href: '#faq', label: 'Installation help' },
-      { href: '/admin', label: 'Orders admin' },
+      { href: '#/admin', label: 'Orders admin' },
     ],
   },
 ];

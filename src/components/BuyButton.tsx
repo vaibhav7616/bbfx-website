@@ -1,5 +1,4 @@
 import { type ReactNode, type CSSProperties, type MouseEvent } from 'react';
-import { Link } from 'react-router-dom';
 
 type Plan = 'monthly' | 'yearly';
 
@@ -11,9 +10,14 @@ interface Props {
   onClick?: () => void;
 }
 
+/** Build a stable checkout URL that works with HashRouter on static hosts. */
+export function checkoutUrl(plan: Plan = 'monthly') {
+  return `#/checkout?plan=${plan}`;
+}
+
 /**
- * Buy CTA — always routes to /checkout?plan=...
- * Uses React Router Link + hard fallback so it never "does nothing".
+ * Buy CTA — always opens the checkout page.
+ * Uses hard hash navigation so it never gets stuck on section anchors like #final-cta.
  */
 export default function BuyButton({
   plan = 'monthly',
@@ -22,34 +26,35 @@ export default function BuyButton({
   style,
   onClick,
 }: Props) {
-  const to = `/checkout?plan=${plan}`;
+  const href = checkoutUrl(plan);
 
-  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
+  const goCheckout = (e?: MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     onClick?.();
 
-    // If something blocks client routing, force a full navigation after a tick.
-    // HashRouter + BrowserRouter both work with absolute path assign fallback.
-    window.setTimeout(() => {
-      const path = window.location.pathname + window.location.search + window.location.hash;
-      const landed =
-        path.includes('/checkout') ||
-        path.includes('checkout?') ||
-        /#\/?checkout/.test(window.location.href);
-      if (!landed) {
-        // Hash-style first (works on static hosts / iframes without rewrite)
-        window.location.assign(`${window.location.pathname}${window.location.search}#/checkout?plan=${plan}`);
-      }
-    }, 120);
+    // Always hard-navigate via hash (HashRouter). Reliable in iframes & static hosts.
+    const target = `#/checkout?plan=${plan}`;
+    if (window.location.hash !== target) {
+      window.location.hash = target;
+    } else {
+      // Force remount if already on checkout with same hash
+      window.location.hash = '#/';
+      window.setTimeout(() => {
+        window.location.hash = target;
+      }, 0);
+    }
 
-    // Don't prevent default — let <Link> do SPA navigation first.
-    // Only stop bubbling so parent handlers can't cancel the click.
-    e.stopPropagation();
+    // Ensure we land at top of checkout
+    window.setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, 30);
   };
 
   return (
-    <Link
-      to={to}
-      onClick={handleClick}
+    <a
+      href={href}
+      onClick={goCheckout}
       className={className}
       style={{
         display: 'inline-flex',
@@ -63,8 +68,9 @@ export default function BuyButton({
         ...style,
       }}
       data-buy-cta="true"
+      role="button"
     >
       {children}
-    </Link>
+    </a>
   );
 }
