@@ -10,7 +10,6 @@ type Slide = {
   tf: string;
   signal: 'BUY' | 'SELL';
   regime: string;
-  last: string;
   conf: string;
   change: string;
   up: boolean;
@@ -25,7 +24,6 @@ const SLIDES: Slide[] = [
     tf: '15 · OANDA',
     signal: 'BUY',
     regime: 'Strong Uptrend',
-    last: '4,075.01',
     conf: '7/10',
     change: '+1.68%',
     up: true,
@@ -38,7 +36,6 @@ const SLIDES: Slide[] = [
     tf: '5 · OANDA',
     signal: 'SELL',
     regime: 'Strong Downtrend',
-    last: '4,081.09',
     conf: '8/10',
     change: '-1.18%',
     up: false,
@@ -51,7 +48,6 @@ const SLIDES: Slide[] = [
     tf: '5 · OANDA',
     signal: 'SELL',
     regime: 'Strong Downtrend',
-    last: '4,063.675',
     conf: '6.2/10',
     change: '-1.60%',
     up: false,
@@ -64,7 +60,6 @@ const SLIDES: Slide[] = [
     tf: '5 · OANDA',
     signal: 'SELL',
     regime: 'Weak Trend',
-    last: '4,052.845',
     conf: '6.7/10',
     change: '+0.08%',
     up: true,
@@ -72,30 +67,45 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const AUTO_MS = 4500;
-
-const springSlide = {
-  type: 'spring' as const,
-  stiffness: 90,
-  damping: 22,
-  mass: 0.95,
-};
+const AUTO_MS = 5000;
+const N = SLIDES.length;
 
 export default function ChartMockup() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [progressKey, setProgressKey] = useState(0);
   const touchX = useRef<number | null>(null);
+  const indexRef = useRef(0);
   const slide = SLIDES[index];
 
   const slideTo = useCallback((nextIndex: number) => {
-    const i = ((nextIndex % SLIDES.length) + SLIDES.length) % SLIDES.length;
+    const i = ((nextIndex % N) + N) % N;
+    indexRef.current = i;
     setIndex(i);
     setProgressKey((k) => k + 1);
   }, []);
 
-  const next = useCallback(() => slideTo(index + 1), [index, slideTo]);
-  const prev = useCallback(() => slideTo(index - 1), [index, slideTo]);
+  const next = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.preventDefault();
+      e?.stopPropagation();
+      slideTo(indexRef.current + 1);
+    },
+    [slideTo]
+  );
+
+  const prev = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.preventDefault();
+      e?.stopPropagation();
+      slideTo(indexRef.current - 1);
+    },
+    [slideTo]
+  );
+
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   useEffect(() => {
     SLIDES.forEach((s) => {
@@ -106,13 +116,14 @@ export default function ChartMockup() {
 
   useEffect(() => {
     if (paused) return;
-    const t = window.setTimeout(() => slideTo(index + 1), AUTO_MS);
-    return () => window.clearTimeout(t);
-  }, [index, paused, slideTo]);
+    const t = window.setInterval(() => {
+      slideTo(indexRef.current + 1);
+    }, AUTO_MS);
+    return () => window.clearInterval(t);
+  }, [paused, slideTo]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchX.current = e.touches[0].clientX;
-    setPaused(true);
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
@@ -120,10 +131,9 @@ export default function ChartMockup() {
     const dx = e.changedTouches[0].clientX - touchX.current;
     touchX.current = null;
     if (Math.abs(dx) > 40) {
-      if (dx < 0) next();
-      else prev();
+      if (dx < 0) slideTo(indexRef.current + 1);
+      else slideTo(indexRef.current - 1);
     }
-    setPaused(false);
   };
 
   return (
@@ -142,11 +152,12 @@ export default function ChartMockup() {
           viewport={{ once: true }}
           transition={{ duration: 0.65 }}
           className="mt-12"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
         >
-          <div className="rounded-2xl md:rounded-[1.25rem] overflow-hidden border border-white/10 bg-[#0b0d12] shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
-            {/* Chrome */}
+          <div
+            className="rounded-2xl md:rounded-[1.25rem] overflow-hidden border border-white/10 bg-[#0b0d12] shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+            onMouseEnter={() => setPaused(true)}
+            onMouseLeave={() => setPaused(false)}
+          >
             <div className="flex items-center justify-between gap-3 px-3 sm:px-4 py-2.5 bg-[#12151c] border-b border-white/[0.06]">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="flex gap-1.5 shrink-0">
@@ -171,12 +182,11 @@ export default function ChartMockup() {
                   LIVE
                 </span>
                 <span className="text-[10px] font-mono text-muted tabular-nums">
-                  {index + 1}/{SLIDES.length}
+                  {index + 1}/{N}
                 </span>
               </div>
             </div>
 
-            {/* Status — asset, setup type, strength only */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2.5 border-b border-white/[0.05] bg-[#0a0c11]">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <span className="font-display text-sm font-bold text-gold">Gold</span>
@@ -203,25 +213,24 @@ export default function ChartMockup() {
               </div>
             </div>
 
-            {/* Image slider — full image, proper box, smooth spring track */}
             <div
               className="relative bg-[#05060a] select-none"
               onTouchStart={onTouchStart}
               onTouchEnd={onTouchEnd}
             >
               <div className="overflow-hidden w-full">
-                <motion.div
-                  className="flex flex-nowrap will-change-transform"
-                  // % is relative to the track width (n slides), so step = 100/n
-                  animate={{ x: `${-(index * 100) / SLIDES.length}%` }}
-                  transition={springSlide}
-                  style={{ width: `${SLIDES.length * 100}%` }}
+                <div
+                  className="flex flex-nowrap transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+                  style={{
+                    width: `${N * 100}%`,
+                    transform: `translate3d(-${(index * 100) / N}%, 0, 0)`,
+                  }}
                 >
                   {SLIDES.map((s) => (
                     <div
                       key={s.id}
                       className="shrink-0 grow-0 flex items-center justify-center bg-[#05060a]"
-                      style={{ width: `${100 / SLIDES.length}%` }}
+                      style={{ width: `${100 / N}%` }}
                     >
                       <img
                         src={s.src}
@@ -233,27 +242,27 @@ export default function ChartMockup() {
                       />
                     </div>
                   ))}
-                </motion.div>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={prev}
                 aria-label="Previous chart"
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-center text-white hover:bg-black/80 hover:border-violet/40 transition-all active:scale-95"
+                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-violet/30 hover:border-violet/50 transition-all active:scale-95 cursor-pointer"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-5 h-5 pointer-events-none" />
               </button>
               <button
                 type="button"
                 onClick={next}
                 aria-label="Next chart"
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-10 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/15 flex items-center justify-center text-white hover:bg-black/80 hover:border-violet/40 transition-all active:scale-95"
+                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/70 backdrop-blur-md border border-white/20 flex items-center justify-center text-white hover:bg-violet/30 hover:border-violet/50 transition-all active:scale-95 cursor-pointer"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-5 h-5 pointer-events-none" />
               </button>
 
-              <div className="absolute bottom-0 inset-x-0 h-[3px] bg-white/[0.06] z-10">
+              <div className="absolute bottom-0 inset-x-0 h-[3px] bg-white/[0.06] z-10 pointer-events-none">
                 {!paused && (
                   <motion.div
                     key={progressKey}
@@ -270,19 +279,18 @@ export default function ChartMockup() {
             </div>
           </div>
 
-          {/* Simple dots only — no thumbnail cards */}
           <div className="mt-5 flex flex-col items-center gap-3">
             <div className="flex items-center justify-center gap-2">
               {SLIDES.map((s, i) => (
                 <button
                   key={s.id}
                   type="button"
-                  aria-label={`Go to slide ${i + 1}: ${s.signal} ${s.regime}`}
+                  aria-label={`Go to slide ${i + 1}`}
                   onClick={() => slideTo(i)}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                     i === index
-                      ? 'w-8 bg-gradient-to-r from-gold via-violet to-neon'
-                      : 'w-1.5 bg-white/20 hover:bg-white/40'
+                      ? 'w-9 bg-gradient-to-r from-gold via-violet to-neon'
+                      : 'w-2 bg-white/25 hover:bg-white/50'
                   }`}
                 />
               ))}
@@ -290,7 +298,11 @@ export default function ChartMockup() {
             <p className="text-center text-xs sm:text-sm text-muted">
               <span className="text-gold font-semibold">Gold (XAUUSD)</span>
               <span className="mx-2 text-white/20">·</span>
-              <span className={slide.signal === 'BUY' ? 'text-signal font-semibold' : 'text-danger font-semibold'}>
+              <span
+                className={
+                  slide.signal === 'BUY' ? 'text-signal font-semibold' : 'text-danger font-semibold'
+                }
+              >
                 {slide.signal}
               </span>
               <span className="mx-2 text-white/20">·</span>

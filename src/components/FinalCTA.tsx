@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import AuroraBg from './AuroraBg';
-import MagneticButton from './MagneticButton';
+import { Link } from 'react-router-dom';
 import { fadeUp, staggerContainer } from '../lib/motion';
 
 export default function FinalCTA() {
@@ -35,21 +35,20 @@ export default function FinalCTA() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-            <MagneticButton
-              href="/checkout?plan=monthly"
+            <Link
+              to="/checkout?plan=monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               Buy Now — ₹99/mo
               <ArrowRight className="w-4 h-4" />
-            </MagneticButton>
-            <MagneticButton
+            </Link>
+            <a
               href="mailto:support@blackboxfx.io"
-              strength={0.25}
               className="btn-ghost px-8 py-3.5 rounded-xl text-base inline-flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               <Mail className="w-4 h-4" />
               Contact Support
-            </MagneticButton>
+            </a>
           </motion.div>
 
           <motion.div variants={fadeUp} className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-muted">

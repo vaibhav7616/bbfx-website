@@ -1,4 +1,4 @@
-import { useRef, type ReactNode, type MouseEvent } from 'react';
+import { useRef, type ReactNode, type MouseEvent as ReactMouseEvent } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { spring } from '../lib/motion';
@@ -11,7 +11,7 @@ interface Props {
   target?: string;
   rel?: string;
   'aria-label'?: string;
-  onClick?: (e: MouseEvent) => void;
+  onClick?: (e: ReactMouseEvent) => void;
 }
 
 function isInternal(href: string) {
@@ -21,22 +21,22 @@ function isInternal(href: string) {
 export default function MagneticButton({
   children,
   className = '',
-  strength = 0.35,
+  strength = 0.28,
   href,
   target,
   rel,
   onClick,
   ...rest
 }: Props) {
+  const ref = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 280, damping: 18, mass: 0.4 });
   const sy = useSpring(y, { stiffness: 280, damping: 18, mass: 0.4 });
   const scale = useSpring(1, spring.snappy);
-  const box = useRef<HTMLElement | null>(null);
 
-  const handleMove = (e: React.MouseEvent) => {
-    const el = box.current;
+  const handleMove = (e: ReactMouseEvent) => {
+    const el = ref.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2);
@@ -51,24 +51,23 @@ export default function MagneticButton({
     scale.set(1);
   };
 
-  const handlers = {
-    onMouseMove: handleMove,
-    onMouseEnter: () => scale.set(1.04),
-    onMouseLeave: handleLeave,
-    onClick,
-    className,
-    ...rest,
-  };
+  const motionStyle = { x: sx, y: sy, scale, display: 'inline-flex' as const };
 
+  // Internal app routes — real React Router Link (always clickable)
   if (isInternal(href)) {
     return (
-      <motion.div style={{ x: sx, y: sy, scale }} className="contents">
+      <motion.div style={motionStyle} className="inline-flex max-w-full">
         <Link
           to={href}
           ref={(node) => {
-            box.current = node;
+            ref.current = node;
           }}
-          {...handlers}
+          onMouseMove={handleMove}
+          onMouseEnter={() => scale.set(1.03)}
+          onMouseLeave={handleLeave}
+          onClick={onClick}
+          className={className}
+          {...rest}
         >
           {children}
         </Link>
@@ -76,16 +75,22 @@ export default function MagneticButton({
     );
   }
 
+  // Hash / external / mailto
   return (
     <motion.a
       href={href}
       target={target}
       rel={rel}
-      style={{ x: sx, y: sy, scale }}
+      style={motionStyle}
       ref={(node) => {
-        box.current = node;
+        ref.current = node;
       }}
-      {...handlers}
+      onMouseMove={handleMove}
+      onMouseEnter={() => scale.set(1.03)}
+      onMouseLeave={handleLeave}
+      onClick={onClick}
+      className={className}
+      {...rest}
     >
       {children}
     </motion.a>

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Check, Crown, Shield, Zap, Headphones, RefreshCw, BadgeCheck, Sparkles } from 'lucide-react';
 import { PRICING_FEATURES, PRICING_PLANS } from '../lib/constants';
 import SectionHeading from './SectionHeading';
-import MagneticButton from './MagneticButton';
+import { Link } from 'react-router-dom';
 import { cardItem, staggerContainer } from '../lib/motion';
 
 const ASSURANCES = [
@@ -97,14 +97,14 @@ export default function Pricing() {
                   ))}
                 </ul>
 
-                <MagneticButton
-                  href={`/checkout?plan=${plan.id}`}
+                <Link
+                  to={`/checkout?plan=${plan.id}`}
                   className={`${
                     plan.featured ? 'btn-gold' : 'btn-ghost'
                   } w-full py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center`}
                 >
                   {plan.cta}
-                </MagneticButton>
+                </Link>
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
                   <span className="inline-flex items-center gap-1">

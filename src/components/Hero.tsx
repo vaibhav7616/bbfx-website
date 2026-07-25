@@ -5,7 +5,7 @@ import { METRICS } from '../lib/constants';
 import { fadeUp, spring, staggerContainer, staggerFast } from '../lib/motion';
 import ParticleField from './ParticleField';
 import AuroraBg from './AuroraBg';
-import MagneticButton from './MagneticButton';
+import { Link } from 'react-router-dom';
 
 const HeroTerminal = lazy(() => import('./HeroTerminal'));
 
@@ -75,20 +75,19 @@ export default function Hero() {
           </motion.p>
 
           <motion.div variants={fadeUp} className="mt-8 flex flex-col sm:flex-row gap-3">
-            <MagneticButton
-              href="/checkout?plan=monthly"
+            <Link
+              to="/checkout?plan=monthly"
               className="btn-gold px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center"
             >
               Get Access — ₹99/mo
-            </MagneticButton>
-            <MagneticButton
+            </Link>
+            <a
               href="#demo"
-              strength={0.25}
               className="btn-ghost px-8 py-3.5 rounded-xl text-center text-[15px] inline-flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4 fill-current" />
               Watch 4-min Demo
-            </MagneticButton>
+            </a>
           </motion.div>
 
           <motion.div
