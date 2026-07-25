@@ -72,7 +72,7 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const AUTO_MS = 5000;
+const AUTO_MS = 1000; // auto-advance every 1 second
 const easeSmooth = [0.22, 1, 0.36, 1] as const;
 
 export default function ChartMockup() {
@@ -227,10 +227,10 @@ export default function ChartMockup() {
                 <motion.div
                   key={slide.id}
                   custom={dir}
-                  initial={{ opacity: 0, x: dir * 48, scale: 1.015 }}
+                  initial={{ opacity: 0, x: dir * 28, scale: 1.01 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: dir * -36, scale: 0.99 }}
-                  transition={{ duration: 0.7, ease: easeSmooth }}
+                  exit={{ opacity: 0, x: dir * -20, scale: 0.995 }}
+                  transition={{ duration: 0.35, ease: easeSmooth }}
                   className="absolute inset-0"
                 >
                   <img
