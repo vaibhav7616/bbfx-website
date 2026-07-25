@@ -176,10 +176,11 @@ export default function ChartMockup() {
               </div>
             </div>
 
-            {/* Status */}
+            {/* Status — asset, setup type, strength only */}
             <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2.5 border-b border-white/[0.05] bg-[#0a0c11]">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="font-display text-sm font-bold text-white">{slide.pair}</span>
+                <span className="font-display text-sm font-bold text-gold">Gold</span>
+                <span className="text-xs text-muted font-mono">{slide.pair}</span>
                 <span className="text-xs text-muted font-mono">{slide.tf}</span>
                 <span
                   className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
@@ -188,16 +189,13 @@ export default function ChartMockup() {
                       : 'bg-danger/12 text-danger border-danger/25'
                   }`}
                 >
-                  {slide.signal} ACTIVE
+                  {slide.signal} SETUP
                 </span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-gold/10 text-gold border border-gold/25">
                   {slide.regime}
                 </span>
               </div>
               <div className="flex items-center gap-3 sm:gap-4 text-[11px] font-mono">
-                <span className="text-muted">
-                  Last <span className="text-white">{slide.last}</span>
-                </span>
                 <span className="text-muted">
                   Conf <span className="text-gold-bright">{slide.conf}</span>
                 </span>
@@ -272,78 +270,34 @@ export default function ChartMockup() {
             </div>
           </div>
 
-          {/* Thumbnails */}
-          <div className="mt-5 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            {SLIDES.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => slideTo(i)}
-                className={`group relative text-left rounded-xl overflow-hidden border transition-all duration-300 ${
-                  i === index
-                    ? 'border-violet/50 shadow-[0_0_24px_rgba(167,139,250,0.18)]'
-                    : 'border-white/[0.07] hover:border-white/20 opacity-80 hover:opacity-100'
-                }`}
-              >
-                <div className="relative aspect-[16/10] overflow-hidden bg-[#08090e]">
-                  <img
-                    src={s.src}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
-                    loading="lazy"
-                    draggable={false}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2">
-                    <span className="font-display text-[11px] font-semibold text-white">{s.pair}</span>
-                    <span
-                      className={`text-[10px] font-mono font-semibold ${
-                        s.signal === 'BUY' ? 'text-signal' : 'text-danger'
-                      }`}
-                    >
-                      {s.signal}
-                    </span>
-                  </div>
-                  {i === index && (
-                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-violet shadow-[0_0_10px_#a78bfa]" />
-                  )}
-                </div>
-                <div className="px-2.5 py-2 bg-[#0c0e14]">
-                  <div className="text-[10px] text-muted truncate">{s.label}</div>
-                  {i === index && (
-                    <div className="mt-1.5 h-[2px] rounded-full bg-white/10 overflow-hidden">
-                      {!paused ? (
-                        <motion.div
-                          key={`thumb-${progressKey}`}
-                          className="h-full bg-gradient-to-r from-gold to-violet origin-left"
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: 1 }}
-                          transition={{ duration: AUTO_MS / 1000, ease: 'linear' }}
-                        />
-                      ) : (
-                        <div className="h-full w-1/3 bg-violet/50" />
-                      )}
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-2">
-            {SLIDES.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => slideTo(i)}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  i === index
-                    ? 'w-8 bg-gradient-to-r from-gold via-violet to-neon'
-                    : 'w-1.5 bg-white/20 hover:bg-white/40'
-                }`}
-              />
-            ))}
+          {/* Simple dots only — no thumbnail cards */}
+          <div className="mt-5 flex flex-col items-center gap-3">
+            <div className="flex items-center justify-center gap-2">
+              {SLIDES.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-label={`Go to slide ${i + 1}: ${s.signal} ${s.regime}`}
+                  onClick={() => slideTo(i)}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    i === index
+                      ? 'w-8 bg-gradient-to-r from-gold via-violet to-neon'
+                      : 'w-1.5 bg-white/20 hover:bg-white/40'
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-center text-xs sm:text-sm text-muted">
+              <span className="text-gold font-semibold">Gold (XAUUSD)</span>
+              <span className="mx-2 text-white/20">·</span>
+              <span className={slide.signal === 'BUY' ? 'text-signal font-semibold' : 'text-danger font-semibold'}>
+                {slide.signal}
+              </span>
+              <span className="mx-2 text-white/20">·</span>
+              <span className="text-white/80">{slide.regime}</span>
+              <span className="mx-2 text-white/20">·</span>
+              <span className="text-gold-bright font-mono">Conf {slide.conf}</span>
+            </p>
           </div>
         </motion.div>
       </div>
