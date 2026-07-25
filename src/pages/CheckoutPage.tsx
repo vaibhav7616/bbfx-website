@@ -27,7 +27,9 @@ import {
 export default function CheckoutPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const initialPlan = (params.get('plan') === 'yearly' ? 'yearly' : 'monthly') as PlanId;
+  // Support both ?plan= and hash query leftovers
+  const planFromUrl = params.get('plan') || new URLSearchParams(window.location.hash.split('?')[1] || '').get('plan');
+  const initialPlan = (planFromUrl === 'yearly' ? 'yearly' : 'monthly') as PlanId;
 
   const [planId, setPlanId] = useState<PlanId>(initialPlan);
   const [fullName, setFullName] = useState('');
@@ -171,8 +173,8 @@ export default function CheckoutPage() {
               </div>
             </div>
           </Link>
-          <Link to="/#pricing" className="text-sm text-muted hover:text-white inline-flex items-center gap-1.5">
-            <ArrowLeft className="w-4 h-4" /> Back
+          <Link to="/" className="text-sm text-muted hover:text-white inline-flex items-center gap-1.5">
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
         </div>
       </header>

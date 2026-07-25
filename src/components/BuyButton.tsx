@@ -1,5 +1,5 @@
 import { type ReactNode, type CSSProperties, type MouseEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 type Plan = 'monthly' | 'yearly';
 
@@ -12,8 +12,8 @@ interface Props {
 }
 
 /**
- * Checkout CTA — always navigates to the checkout page (not in-page scroll).
- * Uses React Router navigate + hard fallback so it works in every host.
+ * Buy CTA — always routes to /checkout?plan=...
+ * Uses React Router Link + hard fallback so it never "does nothing".
  */
 export default function BuyButton({
   plan = 'monthly',
@@ -22,33 +22,34 @@ export default function BuyButton({
   style,
   onClick,
 }: Props) {
-  const navigate = useNavigate();
   const to = `/checkout?plan=${plan}`;
 
-  const goCheckout = (e: MouseEvent<HTMLAnchorElement>) => {
-    // Always take over the click so hash/scroll handlers can't steal it
-    e.preventDefault();
-    e.stopPropagation();
+  const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.();
 
-    try {
-      navigate(to);
-    } catch {
-      // ignore
-    }
-
-    // Hard navigation fallback (covers broken SPA hosts / stuck routers)
+    // If something blocks client routing, force a full navigation after a tick.
+    // HashRouter + BrowserRouter both work with absolute path assign fallback.
     window.setTimeout(() => {
-      if (!window.location.pathname.startsWith('/checkout')) {
-        window.location.assign(to);
+      const path = window.location.pathname + window.location.search + window.location.hash;
+      const landed =
+        path.includes('/checkout') ||
+        path.includes('checkout?') ||
+        /#\/?checkout/.test(window.location.href);
+      if (!landed) {
+        // Hash-style first (works on static hosts / iframes without rewrite)
+        window.location.assign(`${window.location.pathname}${window.location.search}#/checkout?plan=${plan}`);
       }
-    }, 80);
+    }, 120);
+
+    // Don't prevent default — let <Link> do SPA navigation first.
+    // Only stop bubbling so parent handlers can't cancel the click.
+    e.stopPropagation();
   };
 
   return (
-    <a
-      href={to}
-      onClick={goCheckout}
+    <Link
+      to={to}
+      onClick={handleClick}
       className={className}
       style={{
         display: 'inline-flex',
@@ -57,14 +58,13 @@ export default function BuyButton({
         pointerEvents: 'auto',
         cursor: 'pointer',
         position: 'relative',
-        zIndex: 30,
+        zIndex: 50,
         textDecoration: 'none',
         ...style,
       }}
       data-buy-cta="true"
-      role="link"
     >
       {children}
-    </a>
+    </Link>
   );
 }
