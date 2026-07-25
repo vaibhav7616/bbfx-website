@@ -10,6 +10,7 @@ import {
   Home,
   Mail,
   MessageCircle,
+  MonitorSmartphone,
   ShieldCheck,
 } from 'lucide-react';
 import { readLocalOrder, type PaidOrder } from '../lib/checkout';
@@ -51,9 +52,12 @@ export default function SuccessPage() {
     }
   };
 
-  const wa = import.meta.env.VITE_SUPPORT_WHATSAPP
-    ? `https://wa.me/${String(import.meta.env.VITE_SUPPORT_WHATSAPP).replace(/\D/g, '')}?text=${encodeURIComponent(
-        `Hi, I completed BlackBoxFX checkout. Order: ${summary.id}. TV: ${summary.tv}`
+  const waNumber = import.meta.env.VITE_SUPPORT_WHATSAPP
+    ? String(import.meta.env.VITE_SUPPORT_WHATSAPP).replace(/\D/g, '')
+    : '';
+  const wa = waNumber
+    ? `https://wa.me/${waNumber}?text=${encodeURIComponent(
+        `Hi, I completed BlackBoxFX payment. Order: ${summary.id}. TV: ${summary.tv}`
       )}`
     : 'mailto:support@blackboxfx.io';
 
@@ -75,6 +79,24 @@ export default function SuccessPage() {
       </header>
 
       <main className="relative mx-auto max-w-3xl px-4 py-12 md:py-16">
+        {/* Steps */}
+        <div className="mb-8 flex flex-wrap items-center justify-center gap-2 text-[11px] font-mono">
+          {['Plan', 'Details', 'Payment', 'Access'].map((s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              <span
+                className={`px-2.5 py-1 rounded-full border ${
+                  i < 3
+                    ? 'border-signal/30 text-signal bg-signal/10'
+                    : 'border-gold/40 text-gold bg-gold/10'
+                }`}
+              >
+                {i + 1}. {s}
+              </span>
+              {i < 3 && <span className="text-white/20">→</span>}
+            </div>
+          ))}
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -85,18 +107,18 @@ export default function SuccessPage() {
           </div>
 
           <h1 className="font-display text-3xl md:text-4xl font-bold">
-            {demo ? 'Demo order confirmed' : 'Payment received'}
+            {demo ? 'Order confirmed (demo)' : 'Payment received'}
           </h1>
           <p className="mt-3 text-muted text-base md:text-lg max-w-lg mx-auto leading-relaxed">
             {demo ? (
               <>
-                Checkout flow works. In live mode, access is granted within{' '}
-                <span className="text-white font-semibold">{sla}</span> after real payment.
+                Full checkout path works. In live mode after Razorpay, access is granted within{' '}
+                <span className="text-white font-semibold">{sla}</span>.
               </>
             ) : (
               <>
-                Access will be granted within <span className="text-white font-semibold">{sla}</span>. We
-                will add your TradingView username to the invite-only BlackBoxFX script.
+                Payment successful. BlackBoxFX invite-only access is usually granted within{' '}
+                <span className="text-white font-semibold">{sla}</span>.
               </>
             )}
           </p>
@@ -104,7 +126,7 @@ export default function SuccessPage() {
           {demo && (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/25 text-xs text-gold">
               <FlaskConical className="w-3.5 h-3.5" />
-              Demo mode — no real money charged. Razorpay comes next.
+              Demo — no real charge. Connect Razorpay keys for live UPI/card.
             </div>
           )}
 
@@ -113,9 +135,11 @@ export default function SuccessPage() {
             <Info label="Plan" value={summary.plan} />
             <Info label="Email" value={summary.email} />
             <div className="glass rounded-xl p-4 border border-white/[0.06]">
-              <div className="text-[11px] uppercase tracking-wider text-muted mb-1">TradingView username</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted mb-1">
+                TradingView username
+              </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-sm text-white break-all">{summary.tv}</span>
+                <span className="font-mono text-sm text-white break-all">@{summary.tv}</span>
                 {order?.tradingViewUsername && (
                   <button
                     type="button"
@@ -139,23 +163,32 @@ export default function SuccessPage() {
               What happens next
             </div>
             <ol className="space-y-2.5 text-sm text-muted">
-              <li>1. Order details saved (plan, amount, email, TV username, expiry).</li>
-              <li>2. Confirmation shown here (email/WhatsApp when live).</li>
-              <li>3. TV username added on invite-only Pine script after real payment.</li>
+              <li>1. Order saved (plan, amount, email, TV username, expiry).</li>
+              <li>2. You get this confirmation (email/WhatsApp when live).</li>
               <li>
-                4. Open TradingView → Indicators → Invite-only →{' '}
-                <span className="text-white">BlackBoxFX</span>.
+                3. We add your TV username on the BlackBoxFX <strong className="text-white">invite-only</strong>{' '}
+                Pine script.
+              </li>
+              <li className="flex gap-2">
+                <MonitorSmartphone className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                <span>
+                  Open TradingView → Indicators → Invite-only →{' '}
+                  <span className="text-white font-medium">BlackBoxFX</span>
+                </span>
               </li>
             </ol>
           </div>
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
-            <Link to="/checkout?plan=monthly" className="btn-gold px-6 py-3 rounded-xl inline-flex items-center justify-center gap-2">
-              Run another demo order
+            <Link
+              to="/"
+              className="btn-gold px-6 py-3 rounded-xl inline-flex items-center justify-center gap-2"
+            >
+              Back to home
             </Link>
             <a href={wa} className="btn-ghost px-6 py-3 rounded-xl inline-flex items-center justify-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              Contact support
+              WhatsApp / Support
             </a>
             <a
               href="mailto:support@blackboxfx.io"
@@ -168,7 +201,7 @@ export default function SuccessPage() {
 
           <div className="mt-6 inline-flex items-center gap-2 text-xs text-muted">
             <ShieldCheck className="w-3.5 h-3.5 text-signal" />
-            {demo ? 'Demo checkout complete' : 'Secure checkout · Invite-only delivery'}
+            {demo ? 'Demo checkout complete · Ready for Razorpay' : 'Secure checkout · Invite-only delivery'}
           </div>
         </motion.div>
       </main>

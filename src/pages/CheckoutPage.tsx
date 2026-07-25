@@ -192,19 +192,41 @@ export default function CheckoutPage() {
         )}
 
         <div className="mb-8">
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-[11px] font-mono">
+            {[
+              { n: 1, t: 'Plan', on: true },
+              { n: 2, t: 'Details', on: true },
+              { n: 3, t: demoMode ? 'Confirm' : 'Payment', on: true },
+              { n: 4, t: 'TV Access', on: false },
+            ].map((s, i) => (
+              <div key={s.t} className="flex items-center gap-2">
+                <span
+                  className={`px-2.5 py-1 rounded-full border ${
+                    s.on
+                      ? 'border-violet/40 text-gold bg-violet/10'
+                      : 'border-white/10 text-muted bg-white/[0.02]'
+                  }`}
+                >
+                  {s.n}. {s.t}
+                </span>
+                {i < 3 && <span className="text-white/20">→</span>}
+              </div>
+            ))}
+          </div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-gold mb-3">
             <Lock className="w-3 h-3 text-gold" />
             <span className="text-[11px] font-medium tracking-wider uppercase text-gold-bright">
-              {demoMode ? 'Demo · Details & confirm' : 'Step 1 · Details & payment'}
+              {demoMode ? 'Demo checkout' : 'Secure checkout'}
             </span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold">
-            {demoMode ? 'Try the checkout flow' : 'Complete your access'}
+            {demoMode ? 'Enter details & confirm' : 'Complete your access'}
           </h1>
           <p className="mt-2 text-muted max-w-xl">
+            Choose Monthly (₹99) or Yearly (₹999), enter name, email and TradingView username
             {demoMode
-              ? 'Fill your details and confirm. You’ll land on the success page with order details — same path as live payments.'
-              : 'Pay securely, then we add your TradingView username to the invite-only BlackBoxFX script.'}
+              ? ' — confirm to test success page (no real charge).'
+              : ', then pay via UPI / card / netbanking.'}
           </p>
         </div>
 

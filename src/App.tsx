@@ -3,31 +3,27 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import HomePage from './pages/HomePage';
 import CheckoutPage from './pages/CheckoutPage';
 import SuccessPage from './pages/SuccessPage';
+import AdminPage from './pages/AdminPage';
 
 function ScrollManager() {
   const { pathname, hash, search } = useLocation();
 
   useEffect(() => {
-    // When opening checkout / success, always jump to top
     if (pathname !== '/') {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
       return;
     }
 
-    // Home hash anchors (#pricing, #demo, ...)
     if (hash) {
       const id = hash.replace('#', '');
-      // Wait a tick for layout
       requestAnimationFrame(() => {
         const el = document.getElementById(id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
       return;
     }
 
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [pathname, hash, search]);
 
   return null;
@@ -41,7 +37,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/success" element={<SuccessPage />} />
-        {/* Keep SPA routes working on hard refresh / direct open */}
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

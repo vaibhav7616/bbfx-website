@@ -74,6 +74,7 @@ export interface PaidOrder {
   paidAt?: string | null;
   expiresAt: string;
   demoPayment?: boolean;
+  adminNotes?: string;
 }
 
 declare global {
@@ -85,7 +86,10 @@ declare global {
   }
 }
 
-/** Force demo checkout until Razorpay keys + API are connected */
+/**
+ * When true: never open Razorpay; complete as demo payment.
+ * Still tries API first so orders can be saved server-side if backend is running.
+ */
 export const FORCE_DEMO =
   String(import.meta.env.VITE_FORCE_DEMO ?? 'true').toLowerCase() !== 'false';
 
@@ -101,8 +105,19 @@ function uid(prefix = 'BBFX') {
   return `${prefix}-${t}-${r}`;
 }
 
+function normalizeForm(data: CheckoutFormData): CheckoutFormData {
+  return {
+    planId: data.planId,
+    fullName: data.fullName.trim(),
+    email: data.email.trim().toLowerCase(),
+    phone: data.phone.trim(),
+    tradingViewUsername: data.tradingViewUsername.trim().replace(/^@/, ''),
+  };
+}
+
 function buildLocalOrder(data: CheckoutFormData, orderId?: string): PaidOrder {
-  const plan = CHECKOUT_PLANS[data.planId];
+  const form = normalizeForm(data);
+  const plan = CHECKOUT_PLANS[form.planId];
   const now = new Date();
   const expires = new Date(now.getTime() + plan.periodDays * 24 * 60 * 60 * 1000);
   return {
@@ -111,10 +126,10 @@ function buildLocalOrder(data: CheckoutFormData, orderId?: string): PaidOrder {
     planName: plan.name,
     amountInr: plan.amountInr,
     currency: 'INR',
-    fullName: data.fullName.trim(),
-    email: data.email.trim().toLowerCase(),
-    phone: data.phone.trim(),
-    tradingViewUsername: data.tradingViewUsername.trim().replace(/^@/, ''),
+    fullName: form.fullName,
+    email: form.email,
+    phone: form.phone,
+    tradingViewUsername: form.tradingViewUsername,
     status: 'paid',
     paymentStatus: 'demo_paid',
     deliveryStatus: 'queued',
@@ -147,67 +162,71 @@ function buildCreateResponse(data: CheckoutFormData, order: PaidOrder): CreateOr
   };
 }
 
-export async function fetchCheckoutConfig() {
-  if (FORCE_DEMO) {
-    return {
-      demoMode: true,
-      accessSla: '2 hours',
-      currency: 'INR',
-      plans: CHECKOUT_PLANS,
-    };
-  }
+export function validateCheckoutForm(data: CheckoutFormData): string | null {
+  const form = normalizeForm(data);
+  if (!CHECKOUT_PLANS[form.planId]) return 'Invalid plan selected';
+  if (form.fullName.length < 2) return 'Full name is required';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Valid email is required';
+  if (form.tradingViewUsername.length < 2) return 'TradingView username is required';
+  if (form.phone && !/^[+0-9\s-]{8,18}$/.test(form.phone)) return 'Enter a valid phone number';
+  return null;
+}
 
+export async function fetchCheckoutConfig() {
   try {
     const res = await fetch(`${apiBase()}/api/config`);
     if (!res.ok) throw new Error('config failed');
-    return res.json();
+    const json = await res.json();
+    return {
+      ...json,
+      demoMode: Boolean(json.demoMode) || FORCE_DEMO,
+    };
   } catch {
     return {
       demoMode: true,
       accessSla: '2 hours',
       currency: 'INR',
-      plans: CHECKOUT_PLANS,
+      plans: Object.values(CHECKOUT_PLANS),
+      supportEmail: 'support@blackboxfx.io',
     };
   }
 }
 
 export async function createCheckoutOrder(data: CheckoutFormData): Promise<CreateOrderResponse> {
-  const plan = CHECKOUT_PLANS[data.planId];
-  if (!plan) throw new Error('Invalid plan selected');
-  if (!data.fullName.trim()) throw new Error('Full name is required');
-  if (!data.email.trim() || !data.email.includes('@')) throw new Error('Valid email is required');
-  if (!data.tradingViewUsername.trim()) throw new Error('TradingView username is required');
+  const form = normalizeForm(data);
+  const err = validateCheckoutForm(form);
+  if (err) throw new Error(err);
 
-  // Always allow pure client demo when forced or API unavailable
-  if (FORCE_DEMO) {
-    const order = buildLocalOrder(data);
-    // stash pending order for verify step
-    try {
-      sessionStorage.setItem('bbfx_pending_order', JSON.stringify(order));
-    } catch {
-      /* ignore */
-    }
-    return buildCreateResponse(data, order);
-  }
-
+  // Prefer server (saves order in data/orders.json)
   try {
     const res = await fetch(`${apiBase()}/api/checkout/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(form),
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Failed to create order');
+
+    // If FORCE_DEMO, strip razorpay so UI takes demo path even when keys exist
+    if (FORCE_DEMO) {
+      return {
+        ...(json as CreateOrderResponse),
+        demoMode: true,
+        razorpayKeyId: null,
+        razorpayOrderId: null,
+      };
+    }
+
     return json as CreateOrderResponse;
   } catch {
-    // Fallback demo if backend is down
-    const order = buildLocalOrder(data);
+    // Offline / no API — pure client demo
+    const order = buildLocalOrder(form);
     try {
       sessionStorage.setItem('bbfx_pending_order', JSON.stringify(order));
     } catch {
       /* ignore */
     }
-    return buildCreateResponse(data, order);
+    return buildCreateResponse(form, order);
   }
 }
 
@@ -219,7 +238,33 @@ export async function verifyPayment(payload: {
   demo?: boolean;
   form?: CheckoutFormData;
 }): Promise<{ ok: boolean; order: PaidOrder; demoMode?: boolean }> {
-  // Client-side demo verification
+  // Try server verify first (works for demo + live)
+  try {
+    const res = await fetch(`${apiBase()}/api/checkout/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: payload.orderId,
+        razorpay_order_id: payload.razorpay_order_id,
+        razorpay_payment_id: payload.razorpay_payment_id,
+        razorpay_signature: payload.razorpay_signature,
+        demo: FORCE_DEMO || payload.demo || false,
+      }),
+    });
+    const json = await res.json();
+    if (res.ok && json.order) {
+      try {
+        sessionStorage.removeItem('bbfx_pending_order');
+      } catch {
+        /* ignore */
+      }
+      return json;
+    }
+  } catch {
+    /* fall through to local */
+  }
+
+  // Local demo fallback
   if (FORCE_DEMO || payload.demo) {
     let order: PaidOrder | null = null;
     try {
@@ -233,17 +278,16 @@ export async function verifyPayment(payload: {
       if (payload.form) {
         order = buildLocalOrder(payload.form, payload.orderId);
       } else {
-        // minimal fallback
         order = {
           id: payload.orderId,
           planId: 'monthly',
           planName: 'Monthly',
           amountInr: 99,
           currency: 'INR',
-          fullName: 'Demo User',
-          email: 'demo@blackboxfx.io',
+          fullName: 'Customer',
+          email: 'customer@email.com',
           phone: '',
-          tradingViewUsername: 'demo_tv_user',
+          tradingViewUsername: 'tv_user',
           status: 'paid',
           paymentStatus: 'demo_paid',
           deliveryStatus: 'queued',
@@ -262,7 +306,8 @@ export async function verifyPayment(payload: {
       deliveryStatus: 'queued',
       paidAt: new Date().toISOString(),
       demoPayment: true,
-      razorpayPaymentId: payload.razorpay_payment_id || order.razorpayPaymentId || `demo_pay_${Date.now()}`,
+      razorpayPaymentId:
+        payload.razorpay_payment_id || order.razorpayPaymentId || `demo_pay_${Date.now()}`,
     };
 
     try {
@@ -274,14 +319,7 @@ export async function verifyPayment(payload: {
     return { ok: true, order, demoMode: true };
   }
 
-  const res = await fetch(`${apiBase()}/api/checkout/verify`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Payment verification failed');
-  return json;
+  throw new Error('Payment verification failed');
 }
 
 export function loadRazorpay(): Promise<boolean> {
@@ -314,4 +352,31 @@ export function readLocalOrder(): PaidOrder | null {
   } catch {
     return null;
   }
+}
+
+export async function fetchAdminOrders(token: string) {
+  const res = await fetch(`${apiBase()}/api/admin/orders`, {
+    headers: { 'x-admin-token': token },
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Failed to load orders');
+  return json.orders as PaidOrder[];
+}
+
+export async function patchAdminOrder(
+  token: string,
+  orderId: string,
+  body: { deliveryStatus?: string; status?: string; notes?: string }
+) {
+  const res = await fetch(`${apiBase()}/api/admin/orders/${encodeURIComponent(orderId)}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-token': token,
+    },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Failed to update order');
+  return json.order as PaidOrder;
 }
