@@ -89,9 +89,8 @@ export default function App() {
         <div data-reveal>
           <ChartMockup />
         </div>
-        <div data-reveal>
-          <Demo />
-        </div>
+        {/* Demo kept outside GSAP reveal so the video section never stays hidden */}
+        <Demo />
         <div data-reveal>
           <Testimonials />
         </div>
